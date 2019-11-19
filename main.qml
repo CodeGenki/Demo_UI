@@ -21,6 +21,28 @@ ApplicationWindow {
         id: serialport
     }
 
+    QtObject {
+        id: constants
+        readonly property int pwm_dis: 0x10
+        readonly property int pwm_en: 0x11
+        readonly property int rec_dis: 0x12
+        readonly property int rec_en: 0x13
+        readonly property int dab_pri_dis: 0x14
+        readonly property int dab_pri_en: 0x15
+
+        readonly property int dab_freq_inc: 0x20
+        readonly property int dab_freq_dec: 0x21
+        readonly property int dab_freq_set: 0x22
+
+        readonly property int dab_phs_inc: 0x28
+        readonly property int dab_phs_dec: 0x29
+        readonly property int dab_phs_set: 0x2a
+
+        readonly property int i_loop_pr: 0x40
+        readonly property int i_offset: 0x41
+        readonly property int freq_change: 0x45 // freq change
+    }
+
     // Dark mode XD
     //Material.theme: Material.Dark
 
@@ -342,34 +364,41 @@ ApplicationWindow {
                             }
                         }
                     }
-                    Button {
-                        id: serialConnect
-                        text: "Connect"
-                        enabled: true
-                        onClicked: {
-                            serialport.openSerialPort(portName.currentText, baudrate.currentText,
-                                                         databits.currentText,parity.currentText,
-                                                         stopbits.currentText,flowcontrol.currentText);
-                            serialConnect.enabled = false;
-                            serialDisconnect.enabled = true;
-                        }
+                    Row {
+                        id: row6
+                        y: 40
+                        height: 40
+                        Layout.fillWidth: true
                         Layout.alignment: Qt.AlignRight
-                        highlighted: true
-                        Material.accent: Material.Blue
-                    }
-                    Button {
-                        id: serialDisconnect
-                        text: "Disconnect"
-                        enabled: false
-                        onClicked: {
-                            serialport.closeSerialPort();
-                            serialConnect.enabled = true;
-                            serialDisconnect.enabled = false;
+                        Button {
+                            id: serialConnect
+                            text: "Connect"
+                            enabled: true
+                            onClicked: {
+                                serialport.openSerialPort(portName.currentText, baudrate.currentText,
+                                                             databits.currentText,parity.currentText,
+                                                             stopbits.currentText,flowcontrol.currentText);
+                                serialConnect.enabled = false;
+                                serialDisconnect.enabled = true;
+                            }
+                            Layout.alignment: Qt.AlignRight
+                            highlighted: true
+                            Material.accent: Material.Blue
                         }
-                        Layout.alignment: Qt.AlignRight
-                        anchors.right: serialDisconnect.left
-                        highlighted: true
-                        Material.accent: Material.Blue
+                        Button {
+                            id: serialDisconnect
+                            text: "Disconnect"
+                            enabled: false
+                            onClicked: {
+                                serialport.closeSerialPort();
+                                serialConnect.enabled = true;
+                                serialDisconnect.enabled = false;
+                            }
+                           // Layout.alignment: Qt.AlignRight
+                            //anchors.right: serialConnect.left
+                            highlighted: true
+                            Material.accent: Material.Blue
+                        }
                     }
                 }
             }
@@ -520,6 +549,9 @@ ApplicationWindow {
                         verticalAlignment: Text.AlignVCenter
                         leftPadding: pwmSwitch.indicator.width + pwmSwitch.spacing
                     }
+                    onClicked: {
+                        pwmSwitch.checked ? serialport.sendCmd(constants.pwm_en,0,0,0) : serialport.sendCmd(constants.pwm_dis,0,0,0);
+                    }
                 }
             }
 
@@ -548,8 +580,16 @@ ApplicationWindow {
                 }
 
                 Label {
+                    id: vdc
+                    objectName: "Vdc"
+                    text: "DC Voltage:"
+                }
+
+
+                Label {
                     id: progressLabel
                     text: "Input Power (Watts)"
+                    anchors.top: vdc.bottom
                 }
 
                 ProgressBar {
@@ -610,8 +650,9 @@ ApplicationWindow {
                     id: submitFreq
                     anchors.top: freqSlider.bottom
                     text: "Submit"
+                    Layout.alignment: Qt.AlignRight
                     onClicked: {
-                        serialport.sendCmd(FREQ_CHANGE,freq,0,0);
+                        serialport.sendCmd(constants.freq_change,freqSlider.value,0,0);
                     }
                 }
 
@@ -627,7 +668,7 @@ ApplicationWindow {
 
                 Label {
                     id: resFreqLabel
-                    anchors.top: freqSlider.bottom
+                    anchors.top: submitFreq.bottom
                     anchors.topMargin: 15
                     text: "Resonant Frequency:"
                 }

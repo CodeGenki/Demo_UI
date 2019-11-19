@@ -32,6 +32,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 HEADERS += \
     backend.h \
-    serialport.h
+    serialport.h \
+    cmdlist.h
 
 FORMS +=

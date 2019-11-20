@@ -14,7 +14,8 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
         main.cpp \
-    serialport.cpp
+    serialport.cpp \
+    backend.cpp
 
 RESOURCES += qml.qrc
 

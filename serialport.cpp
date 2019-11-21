@@ -11,7 +11,7 @@
 
 //SerialPort::SerialPort(QObject *parent):QObject(parent)
 //{
-
+//extern QObject *object;
 
 SerialPort::SerialPort(QObject *parent) :
     QSerialPort(parent)
@@ -23,9 +23,8 @@ SerialPort::SerialPort(QObject *parent) :
     packet_count = 0;
 
     cmd_assembly.packet.header = 0x55aa;
+    setV_Dc("0");
 
-//    serial = new SerialPort();
-    qDebug() << "testing connection";
     connect(this,SIGNAL(PacketReceived()),this,SLOT(getDataFromPacket()));
 }
 
@@ -53,7 +52,25 @@ void SerialPort::getDataFromPacket()
 
 //    QObject *vdc = object->findChild<QObject*>("Vdc");
 //vdc->setProperty("text", QString::fromStdString("DC Voltage: ") + QString::number(payload_float[1]));
+
+//    QQmlEngine engine;
+//    QQmlComponent component(&engine, QStringLiteral("qrc:/main.qml"));
+//    QObject *object = component.create();
+
+    setV_Dc(QString::number(payload_float[1]));
+
     qDebug() << payload_float[0] << payload_float[1] << payload_float[2] << payload_float[3];
+}
+
+QString SerialPort::V_Dc(){
+    return m_V_Dc;
+}
+
+void SerialPort::setV_Dc(QString vdc){
+    if(vdc == m_V_Dc)
+        return;
+    m_V_Dc = vdc;
+    emit V_Dc_Changed();
 }
 
 QStringList SerialPort::getCOM(){

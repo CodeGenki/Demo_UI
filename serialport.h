@@ -12,18 +12,16 @@
 #define PACKET_BYTE_SIZE (4 + 4*PACKET_FLOAT_NUM + 2*PACKET_INT16_NUM)
 #define PAYLOAD_BYTE_SIZE (4*PACKET_FLOAT_NUM + 2*PACKET_INT16_NUM)
 
-//class SerialPort : public QObject
-//{
-//    Q_OBJECT
 class SerialPort : public QSerialPort
 {
     Q_OBJECT
+    Q_PROPERTY(QString V_Dc READ V_Dc WRITE setV_Dc NOTIFY V_Dc_Changed)
 
 public:
-    //SerialPort(QWidget *parent = 0);
+    QString V_Dc();
+    void setV_Dc(QString vdc);
     SerialPort(QObject *parent = 0);
     ~SerialPort();
-    //void openSerialPort();
     Q_INVOKABLE void closeSerialPort();
     Q_INVOKABLE void sendCmd(quint16 cmd, quint16 arg_1, float arg_2, float arg_3);
     Q_INVOKABLE void openSerialPort(QString name, QString baudRate, QString dataBits,
@@ -36,12 +34,14 @@ public:
 
 signals:
     void PacketReceived();
+    void V_Dc_Changed();
 
 private slots:
     void readData();
     void getDataFromPacket();
 
 private:
+    QString m_V_Dc;
     SerialPort *serial;
     struct SerialPacket {
         qint16 data_int16[PACKET_INT16_NUM];

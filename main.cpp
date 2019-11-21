@@ -4,6 +4,7 @@
 #include <QSerialPortInfo>
 #include <QQuickView>
 #include <QQmlContext>
+#include <QQmlComponent>
 
 #include "backend.h"
 #include "serialport.h"
@@ -12,7 +13,6 @@ int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
 
-    //qmlRegisterType<BackEnd>("io.qt.examples.backend", 1, 0, "BackEnd");
     qmlRegisterType<SerialPort>("io.qt.wpt.serialport", 1, 0, "SerialPort");
 
     QQuickStyle::setStyle("Material");

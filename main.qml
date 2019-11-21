@@ -225,10 +225,6 @@ ApplicationWindow {
                             editable: true
                             Layout.preferredWidth: -1
                             Layout.fillWidth: true
-//                            model: ListModel {
-//                                id: comModel
-//                                ListElement { text: serialport.getCOM() }
-//                            }
                             model: serialport.getCOM()
                             onAccepted: {
                                 if (find(editText) === -1)
@@ -582,7 +578,7 @@ ApplicationWindow {
                 Label {
                     id: vdc
                     objectName: "Vdc"
-                    text: "DC Voltage:"
+                    text: "DC Voltage: " + serialport.V_Dc + "V"
                 }
 
 

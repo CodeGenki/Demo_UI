@@ -9,6 +9,8 @@ import QtQuick.Controls.Material 2.12
 import QtQuick.Controls.Universal 2.12
 import Qt.labs.settings 1.0
 import io.qt.wpt.serialport 1.0
+import QtQuick.Controls.Styles 1.4
+import QtQuick.Extras 1.4
 
 ApplicationWindow {
     id: window
@@ -472,6 +474,50 @@ ApplicationWindow {
                         highlighted: true
                         Material.accent: Material.Blue
                     }
+
+                    RowLayout{
+                        id: freqRow
+                        Label {
+                            id: freqLabel
+                            anchors.top: minPower.bottom
+                            anchors.topMargin: 15
+                            text: "Switching Frequency:"
+                        }
+
+                        Label {
+                            id: freq
+                            anchors.top: minPower.bottom
+                            anchors.topMargin: 15
+                            anchors.right: parent.right
+                            //text: (pwmFreq.length > 0) ? pwmFreq.text + " Hz" : "N/A"
+                            text: freqSlider.value + " kHz"
+                            color: "#14de4a"
+                        }
+                    }
+
+                    Slider {
+                        id: freqSlider
+                        x: -2
+                        anchors.top: freqRow.bottom
+                        width: parent.width
+                        rightPadding: 5
+                        leftPadding: 0
+                        bottomPadding: 0
+                        value: 0
+                        from: 0
+                        to: 200
+                        stepSize: 1
+                    }
+
+                    Button {
+                        id: submitFreq
+                        anchors.top: freqSlider.bottom
+                        text: "Submit"
+                        Layout.alignment: Qt.AlignRight
+                        onClicked: {
+                            serialport.sendCmd(constants.freq_change,freqSlider.value,0,0);
+                        }
+                    }
                 }
             }
 
@@ -553,10 +599,10 @@ ApplicationWindow {
 
             GroupBox {
                 id: inputBox
-                title: qsTr("System Input Parameters")
+                title: qsTr("Inputs")
                 anchors.verticalCenter: parent.verticalCenter
-                width: window.width/4
-                height: window.height/3
+                width: window.width/3
+                height: window.height*5/6
 
                 background: Rectangle {
                     y: inputBox.topPadding - inputBox.bottomPadding
@@ -573,84 +619,96 @@ ApplicationWindow {
                     text: inputBox.title
                     color: "#3ba2f5"
                     elide: Text.ElideLeft
+                    font.pointSize: 20
                 }
 
                 Label {
                     id: vdc
                     objectName: "Vdc"
                     text: "DC Voltage: " + serialport.V_Dc + "V"
+                    font.pointSize: 36
                 }
 
+//                ProgressBar {
+//                    id: vdcGauge
+//                    width: inputBox.width - 20
+//                    height: 15
+//                    value: serialport.V_Dc
+//                    from: 0
+//                    to: 400
+//                    anchors.top: vdc.bottom
+//                }
 
-                Label {
-                    id: progressLabel
-                    text: "Input Power (Watts)"
+                CircularGauge {
+                    id: vdcGauge
                     anchors.top: vdc.bottom
-                }
-
-                ProgressBar {
-                    id: progressBar
-                    width: inputBox.width - 20
-                    height: 15
-                    value: 0.0
-                    from: minPower.text
-                    to: maxPower.text
-                    anchors.top: progressLabel.bottom
-                }
-
-                Label {
-                   id: minPower
-                   anchors.left: progressBar.left
-                   anchors.top: progressBar.bottom
-                   text: "0"
-                }
-
-                Label {
-                    id: maxPower
-                    anchors.right: progressBar.right
-                    anchors.top: progressBar.bottom
-                    text: "1000"
-                }
-
-                Label {
-                    id: freqLabel
-                    anchors.top: minPower.bottom
-                    anchors.topMargin: 15
-                    text: "Switching Frequency:"
-                }
-
-                Label {
-                    id: freq
-                    anchors.top: minPower.bottom
-                    anchors.topMargin: 15
-                    anchors.right: parent.right
-                    //text: (pwmFreq.length > 0) ? pwmFreq.text + " Hz" : "N/A"
-                    text: freqSlider.value + " kHz"
-                    color: "#14de4a"
-                }
-
-                Slider {
-                    id: freqSlider
-                    x: -2
-                    anchors.top: freq.bottom
-                    width: parent.width
-                    rightPadding: 5
-                    leftPadding: 0
-                    bottomPadding: 0
-                    from: 0
-                    to: 200
+                    style: CircularGaugeStyle {
+                        needle: Rectangle {
+                            y: outerRadius * 0.15
+                            implicitWidth: outerRadius * 0.03
+                            implicitHeight: outerRadius * 0.9
+                            antialiasing: true
+                            color: Qt.rgba(0.66, 0.3, 0, 1)
+                        }
+                       tickmarkStepSize: 10
+                    }
+                    maximumValue: 100
+                    minimumValue: 0
+                    value: serialport.V_Dc
                     stepSize: 1
                 }
 
-                Button {
-                    id: submitFreq
-                    anchors.top: freqSlider.bottom
-                    text: "Submit"
-                    Layout.alignment: Qt.AlignRight
-                    onClicked: {
-                        serialport.sendCmd(constants.freq_change,freqSlider.value,0,0);
-                    }
+                Label {
+                    id: progressLabel
+                    text: "Input Power: " + (serialport.V_Dc * serialport.I_Dc) + "W"
+                    anchors.top: vdcGauge.bottom
+                    font.pointSize: 36
                 }
+
+//                ProgressBar {
+//                    id: progressBar
+//                    width: inputBox.width - 20
+//                    height: 15
+//                    value: 0.0
+//                    from: minPower.text
+//                    to: maxPower.text
+//                    anchors.top: progressLabel.bottom
+//                }
+
+                CircularGauge {
+                    id: powerGauge
+                    anchors.top: progressLabel.bottom
+                    style: CircularGaugeStyle {
+                        needle: Rectangle {
+                            y: outerRadius * 0.15
+                            implicitWidth: outerRadius * 0.03
+                            implicitHeight: outerRadius * 0.9
+                            antialiasing: true
+                            color: Qt.rgba(0.66, 0.3, 0, 1)
+                        }
+                        tickmarkStepSize: 5
+                    }
+                    maximumValue: 40
+                    minimumValue: 0
+                    value: (serialport.V_Dc * serialport.I_Dc)
+                    stepSize: 1
+                }
+
+//                Label {
+//                   id: minPower
+//                   anchors.left: progressBar.left
+//                   anchors.top: progressBar.bottom
+//                   text: "0"
+//                }
+
+//                Label {
+//                    id: maxPower
+//                    anchors.right: progressBar.right
+//                    anchors.top: progressBar.bottom
+//                    text: "1000"
+//                }
+
+
 
                 /*
                 Label {
@@ -662,21 +720,21 @@ ApplicationWindow {
                 }
                 */
 
-                Label {
-                    id: resFreqLabel
-                    anchors.top: submitFreq.bottom
-                    anchors.topMargin: 15
-                    text: "Resonant Frequency:"
-                }
+//                Label {
+//                    id: resFreqLabel
+//                    anchors.top: submitFreq.bottom
+//                    anchors.topMargin: 15
+//                    text: "Resonant Frequency:"
+//                }
 
-                Label {
-                    id: resFreq
-                    anchors.top: freqSlider.bottom
-                    anchors.topMargin: 15
-                    anchors.right: parent.right
-                    text: "32 kHz"  // TODO: Update this
-                    color: "#14de4a"
-                }
+//                Label {
+//                    id: resFreq
+//                    anchors.top: freqSlider.bottom
+//                    anchors.topMargin: 15
+//                    anchors.right: parent.right
+//                    text: "32 kHz"  // TODO: Update this
+//                    color: "#14de4a"
+//                }
             }
         }
     }

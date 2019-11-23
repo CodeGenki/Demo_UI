@@ -16,10 +16,13 @@ class SerialPort : public QSerialPort
 {
     Q_OBJECT
     Q_PROPERTY(QString V_Dc READ V_Dc WRITE setV_Dc NOTIFY V_Dc_Changed)
+    Q_PROPERTY(QString I_Dc READ I_Dc WRITE setI_Dc NOTIFY I_Dc_Changed)
 
 public:
     QString V_Dc();
     void setV_Dc(QString vdc);
+    QString I_Dc();
+    void setI_Dc(QString vdc);
     SerialPort(QObject *parent = 0);
     ~SerialPort();
     Q_INVOKABLE void closeSerialPort();
@@ -35,6 +38,7 @@ public:
 signals:
     void PacketReceived();
     void V_Dc_Changed();
+    void I_Dc_Changed();
 
 private slots:
     void readData();
@@ -42,6 +46,7 @@ private slots:
 
 private:
     QString m_V_Dc;
+     QString m_I_Dc;
     SerialPort *serial;
     struct SerialPacket {
         qint16 data_int16[PACKET_INT16_NUM];

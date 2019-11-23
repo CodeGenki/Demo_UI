@@ -34,6 +34,10 @@ SerialPort::~SerialPort()
 }
 
 
+float current_arr[100];
+int leni = 0;
+float ii = 0;
+
 void SerialPort::getDataFromPacket()
 {
     qint16 payload_int16[8];
@@ -45,32 +49,55 @@ void SerialPort::getDataFromPacket()
     for(quint16 i=0;i<4;i++)
         this->getFloat(payload_float+i,i);
 
+    float voltage = ((float)0.2767)*payload_float[1] - 2.1464;
+    float current = ((float)0.0009)*payload_float[2] - 0.0567;
+    if(voltage < 0)
+        voltage = 0;
+    if(current < 0)
+        current = 0;
 
- //   QQmlEngine engine;
-//    QQmlComponent component(&engine, "qrc:/main.qml");
-//    QObject *object = component.create();
+    leni++;
+    ii = 0;
+    if(leni >= 100) {
+        leni = 0;
+    }
+    current_arr[leni] = current;
+    int j = 0;
+    for(j=0;j<leni;j++){
+        ii += current_arr[j];
+    }
+    ii /= (j+1);
+    float Idc = ii;
 
-//    QObject *vdc = object->findChild<QObject*>("Vdc");
-//vdc->setProperty("text", QString::fromStdString("DC Voltage: ") + QString::number(payload_float[1]));
+    //setV_Dc(QString::number(payload_float[1]));
+    setV_Dc(QString::number(voltage));
+    setI_Dc(QString::number(Idc));
 
-//    QQmlEngine engine;
-//    QQmlComponent component(&engine, QStringLiteral("qrc:/main.qml"));
-//    QObject *object = component.create();
-
-    setV_Dc(QString::number(payload_float[1]));
-
-    qDebug() << payload_float[0] << payload_float[1] << payload_float[2] << payload_float[3];
+    qDebug() << payload_float[0] << voltage << Idc << payload_float[3];
 }
 
 QString SerialPort::V_Dc(){
     return m_V_Dc;
 }
 
+
 void SerialPort::setV_Dc(QString vdc){
     if(vdc == m_V_Dc)
         return;
     m_V_Dc = vdc;
     emit V_Dc_Changed();
+}
+
+QString SerialPort::I_Dc(){
+    return m_I_Dc;
+}
+
+
+void SerialPort::setI_Dc(QString idc){
+    if(idc == m_I_Dc)
+        return;
+    m_I_Dc = idc;
+    emit I_Dc_Changed();
 }
 
 QStringList SerialPort::getCOM(){

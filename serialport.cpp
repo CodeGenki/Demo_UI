@@ -9,21 +9,26 @@
 #include <QQmlComponent>
 #include <QQmlProperty>
 
-//SerialPort::SerialPort(QObject *parent):QObject(parent)
-//{
-//extern QObject *object;
-
 SerialPort::SerialPort(QObject *parent) :
     QSerialPort(parent)
 {
-    //sp = new QSerialPort();
     connect(this, SIGNAL(readyRead()), this, SLOT(readData()));
-    //connect(this, &QSerialPort::readyRead, this,  SLOT(readData()));
     decoder_state = 0;
     packet_count = 0;
 
     cmd_assembly.packet.header = 0x55aa;
+
+    // Set initial voltage and current in GUI
     setV_Dc("0");
+    setI_Dc("0");
+
+    // Test visuals here
+//    float V = 20.2121312f;
+//    float I = 2.1345311f;
+//    setV_Dc(QString::number(V, 'f', 2));
+//    setI_Dc(QString::number(I, 'f', 2));
+
+
 
     connect(this,SIGNAL(PacketReceived()),this,SLOT(getDataFromPacket()));
 }
@@ -49,8 +54,8 @@ void SerialPort::getDataFromPacket()
     for(quint16 i=0;i<4;i++)
         this->getFloat(payload_float+i,i);
 
-    float voltage = ((float)0.2767)*payload_float[1] - 2.1464;
-    float current = ((float)0.0009)*payload_float[2] - 0.0567;
+    float voltage = (0.2767f)*payload_float[1] - 2.1464f;
+    float current = (0.0009f)*payload_float[2] - 0.0567f;
     if(voltage < 0)
         voltage = 0;
     if(current < 0)
@@ -67,13 +72,13 @@ void SerialPort::getDataFromPacket()
         ii += current_arr[j];
     }
     ii /= (j+1);
-    float Idc = ii;
+    current = ii;
 
     //setV_Dc(QString::number(payload_float[1]));
-    setV_Dc(QString::number(voltage));
-    setI_Dc(QString::number(Idc));
+    setV_Dc(QString::number(double(voltage), 'f', 2));
+    setI_Dc(QString::number(double(current), 'f', 2));
 
-    qDebug() << payload_float[0] << voltage << Idc << payload_float[3];
+    qDebug() << payload_float[0] << voltage << current << payload_float[3];
 }
 
 QString SerialPort::V_Dc(){

@@ -379,9 +379,9 @@ ApplicationWindow {
                                 serialConnect.enabled = false;
                                 serialDisconnect.enabled = true;
                             }
-                            Layout.alignment: Qt.AlignRight
                             highlighted: true
                             Material.accent: Material.Blue
+                            anchors.right: serialDisconnect.left
                         }
                         Button {
                             id: serialDisconnect
@@ -392,10 +392,9 @@ ApplicationWindow {
                                 serialConnect.enabled = true;
                                 serialDisconnect.enabled = false;
                             }
-                           // Layout.alignment: Qt.AlignRight
-                            //anchors.right: serialConnect.left
                             highlighted: true
                             Material.accent: Material.Blue
+                            anchors.right: parent.right
                         }
                     }
                 }
@@ -495,27 +494,28 @@ ApplicationWindow {
                         }
                     }
 
-                    Slider {
-                        id: freqSlider
-                        x: -2
-                        anchors.top: freqRow.bottom
-                        width: parent.width
-                        rightPadding: 5
-                        leftPadding: 0
-                        bottomPadding: 0
-                        value: 0
-                        from: 0
-                        to: 200
-                        stepSize: 1
-                    }
 
-                    Button {
-                        id: submitFreq
-                        anchors.top: freqSlider.bottom
-                        text: "Submit"
-                        Layout.alignment: Qt.AlignRight
-                        onClicked: {
-                            serialport.sendCmd(constants.freq_change,freqSlider.value,0,0);
+                    RowLayout {
+                        width: parent.width
+                        Slider {
+                            id: freqSlider
+                            x: -2
+                            width: advancedControls.width - submitFreq.width
+                            rightPadding: 5
+                            leftPadding: 0
+                            bottomPadding: 0
+                            value: 0
+                            from: 0
+                            to: 200
+                            stepSize: 1
+                        }
+
+                        Button {
+                            id: submitFreq
+                            text: "Submit"
+                            onClicked: {
+                                serialport.sendCmd(constants.freq_change,freqSlider.value,0,0);
+                            }
                         }
                     }
                 }
@@ -602,7 +602,7 @@ ApplicationWindow {
                 title: qsTr("Inputs")
                 anchors.verticalCenter: parent.verticalCenter
                 width: window.width/3
-                height: window.height*5/6
+                height: window.height*4/6
 
                 background: Rectangle {
                     y: inputBox.topPadding - inputBox.bottomPadding
@@ -625,59 +625,113 @@ ApplicationWindow {
                 Label {
                     id: vdc
                     objectName: "Vdc"
-                    text: "DC Voltage: " + serialport.V_Dc + "V"
-                    font.pointSize: 36
+                    text: "Charging Voltage: " + serialport.V_Dc + "V"
+                    font.pointSize: 25
                 }
 
-//                ProgressBar {
+                ProgressBar {
+                    id: vdcGauge
+                    width: inputBox.width - 20
+                    height: 15
+                    value: serialport.V_Dc
+                    from: 0
+                    to: 100
+                    anchors.top: vdc.bottom
+                    anchors.topMargin: 5
+
+                    background: Rectangle {
+                        implicitWidth: 200
+                        implicitHeight: 6
+                        color: "#e6e6e6"
+                        radius: 3
+                    }
+                    contentItem: Item {
+                        implicitWidth: 200
+                        implicitHeight: 4
+
+                        Rectangle {
+                            width: vdcGauge.visualPosition * parent.width
+                            height: parent.height
+                            radius: 2
+                            color: "#03d7fc"
+                        }
+                    }
+                }
+
+//                CircularGauge {
 //                    id: vdcGauge
-//                    width: inputBox.width - 20
-//                    height: 15
-//                    value: serialport.V_Dc
-//                    from: 0
-//                    to: 400
 //                    anchors.top: vdc.bottom
+//                    style: CircularGaugeStyle {
+//                        needle: Rectangle {
+//                            y: outerRadius * 0.15
+//                            implicitWidth: outerRadius * 0.03
+//                            implicitHeight: outerRadius * 0.9
+//                            antialiasing: true
+//                            color: Qt.rgba(0.66, 0.3, 0, 1)
+//                        }
+//                       tickmarkStepSize: 10
+//                    }
+//                    maximumValue: 100
+//                    minimumValue: 0
+//                    value: serialport.V_Dc
+//                    stepSize: 1
 //                }
 
-                CircularGauge {
-                    id: vdcGauge
-                    anchors.top: vdc.bottom
-                    style: CircularGaugeStyle {
-                        needle: Rectangle {
-                            y: outerRadius * 0.15
-                            implicitWidth: outerRadius * 0.03
-                            implicitHeight: outerRadius * 0.9
-                            antialiasing: true
-                            color: Qt.rgba(0.66, 0.3, 0, 1)
-                        }
-                       tickmarkStepSize: 10
+                Label {
+                    id: idc
+                    objectName: "Vdc"
+                    text: "Charging Current: " + serialport.I_Dc + "A"
+                    font.pointSize: 25
+                    anchors.top: vdcGauge.bottom
+                    anchors.topMargin: 5
+                }
+
+                ProgressBar {
+                    id: idcGauge
+                    width: inputBox.width - 20
+                    height: 15
+                    value: serialport.I_Dc
+                    from: 0
+                    to: 15
+                    anchors.top: idc.bottom
+                    anchors.topMargin: 5
+
+                    background: Rectangle {
+                        implicitWidth: 200
+                        implicitHeight: 6
+                        color: "#e6e6e6"
+                        radius: 3
                     }
-                    maximumValue: 100
-                    minimumValue: 0
-                    value: serialport.V_Dc
-                    stepSize: 1
+                    contentItem: Item {
+                        implicitWidth: 200
+                        implicitHeight: 4
+
+                        Rectangle {
+                            width: idcGauge.visualPosition * parent.width
+                            height: parent.height
+                            radius: 2
+                            color: "#03d7fc"
+                        }
+                    }
+                }
+
+                Row {
+
                 }
 
                 Label {
                     id: progressLabel
-                    text: "Input Power: " + (serialport.V_Dc * serialport.I_Dc) + "W"
-                    anchors.top: vdcGauge.bottom
-                    font.pointSize: 36
+                    text: "Charging Power:   " + (serialport.V_Dc * serialport.I_Dc).toFixed(2) + "W"
+                    anchors.top: idcGauge.bottom
+                    font.pointSize: 25
                 }
-
-//                ProgressBar {
-//                    id: progressBar
-//                    width: inputBox.width - 20
-//                    height: 15
-//                    value: 0.0
-//                    from: minPower.text
-//                    to: maxPower.text
-//                    anchors.top: progressLabel.bottom
-//                }
 
                 CircularGauge {
                     id: powerGauge
                     anchors.top: progressLabel.bottom
+                    anchors.topMargin: 20
+                    anchors.left: parent.left
+                    anchors.leftMargin: (parent.width - powerGauge.width)/2
                     style: CircularGaugeStyle {
                         needle: Rectangle {
                             y: outerRadius * 0.15
@@ -688,53 +742,11 @@ ApplicationWindow {
                         }
                         tickmarkStepSize: 5
                     }
-                    maximumValue: 40
+                    maximumValue: 60
                     minimumValue: 0
                     value: (serialport.V_Dc * serialport.I_Dc)
                     stepSize: 1
                 }
-
-//                Label {
-//                   id: minPower
-//                   anchors.left: progressBar.left
-//                   anchors.top: progressBar.bottom
-//                   text: "0"
-//                }
-
-//                Label {
-//                    id: maxPower
-//                    anchors.right: progressBar.right
-//                    anchors.top: progressBar.bottom
-//                    text: "1000"
-//                }
-
-
-
-                /*
-                Label {
-                    id: resFreqPoint
-                    anchors.top: freqSlider.bottom
-                    x: freqSlider.x + (freqSlider.width*(resFreqPoint.text*1/maxFreq.text) - freqSlider.rightPadding + 2)
-                    text: "32"
-                    color: "#09b5ac"
-                }
-                */
-
-//                Label {
-//                    id: resFreqLabel
-//                    anchors.top: submitFreq.bottom
-//                    anchors.topMargin: 15
-//                    text: "Resonant Frequency:"
-//                }
-
-//                Label {
-//                    id: resFreq
-//                    anchors.top: freqSlider.bottom
-//                    anchors.topMargin: 15
-//                    anchors.right: parent.right
-//                    text: "32 kHz"  // TODO: Update this
-//                    color: "#14de4a"
-//                }
             }
         }
     }

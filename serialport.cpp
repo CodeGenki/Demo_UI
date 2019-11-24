@@ -43,6 +43,8 @@ float current_arr[100];
 int leni = 0;
 float ii = 0;
 
+int counterMax = 5;
+int counter = 0;
 void SerialPort::getDataFromPacket()
 {
     qint16 payload_int16[8];
@@ -75,8 +77,11 @@ void SerialPort::getDataFromPacket()
     current = ii;
 
     //setV_Dc(QString::number(payload_float[1]));
-    setV_Dc(QString::number(double(voltage), 'f', 2));
-    setI_Dc(QString::number(double(current), 'f', 2));
+    if (counter > counterMax) {
+        setV_Dc(QString::number(double(voltage), 'f', 2));
+        setI_Dc(QString::number(double(current), 'f', 2));
+        counter = 0;
+    }
 
     qDebug() << payload_float[0] << voltage << current << payload_float[3];
 }

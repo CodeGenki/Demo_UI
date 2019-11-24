@@ -536,7 +536,7 @@ ApplicationWindow {
             AnimatedImage {
                 id: animation
                 source: "images/wpt.gif"
-                width: 400
+                width: 550
                 fillMode: Image.PreserveAspectFit
                 anchors.verticalCenter: parent.verticalCenter
                 anchors.horizontalCenter: parent.horizontalCenter
@@ -546,13 +546,15 @@ ApplicationWindow {
 
             AnimatedImage {
                 id: animation1
-                source: "images/lightbulb.gif"
+                source: "images/Empty_Car.gif"
                 anchors.left: animation.right
                 anchors.leftMargin: 90
                 anchors.verticalCenter: parent.verticalCenter
-                width: 200
+                width: 650
+                height: 650
                 fillMode: Image.PreserveAspectFit
-                paused: pwmSwitch.checked ? false : true
+
+                //paused: pwmSwitch.checked ? false : true
                 currentFrame: pwmSwitch.checked ? currentFrame : 0
             }
 
@@ -593,6 +595,13 @@ ApplicationWindow {
                     }
                     onClicked: {
                         pwmSwitch.checked ? serialport.sendCmd(constants.pwm_en,0,0,0) : serialport.sendCmd(constants.pwm_dis,0,0,0);
+                        pwmSwitch.checked ? animation1.source = "images/Charging_Car.gif" : animation1.source = "images/Empty_Car.gif";
+                        //if(animation1.source == "images/Empty_Car.gif" && pwmSwitch.checked)
+                            //animation1.source = "images/Charging_Car.gif";
+//                        else{
+//                            animation1.source = "images/Empty_Car.gif";
+////                            animation1.paused = true;
+//                        }
                     }
                 }
             }

@@ -23,10 +23,10 @@ SerialPort::SerialPort(QObject *parent) :
     setI_Dc("0");
 
     // Test visuals here
-    float V = 20.2121312f;
-    float I = 2.1345311f;
-    setV_Dc(QString::number(V, 'f', 2));
-    setI_Dc(QString::number(I, 'f', 2));
+//    float V = 20.2121312f;
+//    float I = 2.1345311f;
+//    setV_Dc(QString::number(V, 'f', 2));
+//    setI_Dc(QString::number(I, 'f', 2));
 
 
 

@@ -39,5 +39,6 @@
         <file>images/loop.gif</file>
         <file>images/end.gif</file>
         <file>images/start.gif</file>
+        <file>images/Charged_Car.gif</file>
     </qresource>
 </RCC>

@@ -97,7 +97,7 @@ ApplicationWindow {
                 horizontalAlignment: Qt.AlignHCenter
                 verticalAlignment: Qt.AlignVCenter
                 Layout.fillWidth: true
-                font.pointSize: 36
+                font.pointSize: 36*window.width/1200
             }
 
             ToolButton {
@@ -455,7 +455,7 @@ ApplicationWindow {
                             id: maxPow
                             Layout.fillWidth: true
                             placeholderText: qsTr("Max Power (Watts)")
-                            text: "1000"
+                            text: "200"
                             horizontalAlignment: Text.AlignHCenter
                         }
                         Label {
@@ -495,28 +495,24 @@ ApplicationWindow {
                         }
                     }
 
+                    Slider {
+                        id: freqSlider
+                        x: -2
+                        width: advancedControls.width
+                        rightPadding: 5
+                        leftPadding: 0
+                        bottomPadding: 0
+                        value: 78
+                        from: 0
+                        to: maxFreq.text
+                        stepSize: 1
+                    }
 
-                    RowLayout {
-                        width: parent.width
-                        Slider {
-                            id: freqSlider
-                            x: -2
-                            width: advancedControls.width - submitFreq.width
-                            rightPadding: 5
-                            leftPadding: 0
-                            bottomPadding: 0
-                            value: 0
-                            from: 0
-                            to: 200
-                            stepSize: 1
-                        }
-
-                        Button {
-                            id: submitFreq
-                            text: "Submit"
-                            onClicked: {
-                                serialport.sendCmd(constants.freq_change,freqSlider.value,0,0);
-                            }
+                    Button {
+                        id: submitFreq
+                        text: "Submit"
+                        onClicked: {
+                            serialport.sendCmd(constants.freq_change,freqSlider.value,0,0);
                         }
                     }
                 }
@@ -537,20 +533,6 @@ ApplicationWindow {
         animation.playing = true;
     }
 
-    function carDrive() {
-        if(pwmSwitch.checked) {
-            animation1.x = 0;
-            while(animation1.x < (window.width - (animation1.width/2))){
-                animation1.x++;
-            }
-        }
-        else {
-            while(animation1.x < window.width + animation1.width) {
-                animation1.x++;
-            }
-        }
-    }
-
     function getBezierCurve(name)
     {
         if (name === "Easing.Bezier")
@@ -561,8 +543,10 @@ ApplicationWindow {
     function returnToStartPos(){
         if(animation1.x == window.width)
             animation1.state = "OFF_SCREEN";
-        if(animation1.x == -1*animation1.width)
+        if(animation1.x == -1*animation1.width){
+            animation1.source = "qrc:/images/Empty_Car.gif";
             animation1.state = "OFF_LEFT";
+        }
     }
 
     StackView {
@@ -579,7 +563,8 @@ ApplicationWindow {
                 width: 650*window.width/1200
                 fillMode: Image.PreserveAspectFit
                 anchors.verticalCenter: parent.verticalCenter
-                anchors.horizontalCenter: parent.horizontalCenter
+                x: window.width*7/10 - animation.width/2
+                //anchors.horizontalCenter: parent.horizontalCenter
                 onCurrentFrameChanged: loopAnim();
                 onSourceChanged: sourceChange()
             }
@@ -587,20 +572,13 @@ ApplicationWindow {
             AnimatedImage {
                 id: animation1
                 source: "images/Empty_Car.gif"
-//                anchors.left: animation.right
-//                anchors.leftMargin: 90
                 anchors.bottom: animation.top
                 anchors.bottomMargin: -100*window.width/1200
-                //x: x == window.width ? -1*animation1.width : x
                 x: 0;
-                //anchors.horizontalCenter: parent.horizontalCenter
-                //anchors.verticalCenter: parent.verticalCenter
                 width: 300*window.width/1200
                 fillMode: Image.PreserveAspectFit
 
-                //paused: pwmSwitch.checked ? false : true
                 currentFrame: pwmSwitch.checked ? currentFrame : 0
-
                 onXChanged: returnToStartPos()
 
                 state: "OFF_LEFT"
@@ -611,7 +589,7 @@ ApplicationWindow {
                         name: "CENTERED"
                         PropertyChanges {
                             target: animation1;
-                            x: window.width/2 - animation1.width/2
+                            x: window.width*7/10 - animation1.width/2
                         }
                     },
                     State {
@@ -673,10 +651,11 @@ ApplicationWindow {
 
             GroupBox {
                 id: switchBox
-                anchors.horizontalCenter: parent.horizontalCenter
-                width: 175
-                height: 73
-                y: window.height*3/4
+                //anchors.horizontalCenter: parent.horizontalCenter
+                width: 250*window.width/1200
+                height: width*0.4
+                anchors.bottom: inputBox.bottom
+                x: window.width*7/10 - width/2
 
                 background: Rectangle {
                     y: switchBox.topPadding - switchBox.bottomPadding
@@ -689,15 +668,18 @@ ApplicationWindow {
 
                 Label {
                     id: switchLabel
-                    text: "Wireless Power Transfer"
+                    //text: "Wireless Power Transfer"
+                    text: "Wireless Charger"
                     //y: window.height*3/4
                     anchors.horizontalCenter: parent.horizontalCenter
+                    font.pointSize: 20*window.width/1200
                 }
 
                 Switch {
                     id: pwmSwitch
-                    text: pwmSwitch.checked ? "Enabled" : "Disabled"
+                    text: pwmSwitch.checked ? "ON" : "OFF"
                     anchors.top: switchLabel.bottom
+                    anchors.topMargin: inputBox.height*0.02
                     anchors.horizontalCenter: parent.horizontalCenter
 
                     contentItem: Text {
@@ -705,12 +687,32 @@ ApplicationWindow {
                         color: pwmSwitch.checked ? "green" : "red"
                         verticalAlignment: Text.AlignVCenter
                         leftPadding: pwmSwitch.indicator.width + pwmSwitch.spacing
+                        font.pointSize: 13*window.width/1200
                     }
+
+                    indicator: Rectangle {
+                        implicitWidth: 48*window.width/1200
+                        implicitHeight: 26*implicitWidth/48
+                        x: pwmSwitch.leftPadding
+                        y: parent.height / 2 - height / 2
+                        radius: 13*implicitWidth/48
+                        color: pwmSwitch.checked ? "#17a81a" : "#ffffff"
+                        border.color: pwmSwitch.checked ? "#17a81a" : "#cccccc"
+
+                        Rectangle {
+                            x: pwmSwitch.checked ? parent.width - width : 0
+                            width: parent.implicitHeight
+                            height: parent.implicitHeight
+                            radius: parent.radius
+                            color: pwmSwitch.down ? "#cccccc" : "#ffffff"
+                            border.color: pwmSwitch.checked ? (pwmSwitch.down ? "#17a81a" : "#21be2b") : "#999999"
+                        }
+                    }
+
                     onClicked: {
                         pwmSwitch.checked ? serialport.sendCmd(constants.pwm_en,0,0,0) : serialport.sendCmd(constants.pwm_dis,0,0,0);
-                        pwmSwitch.checked ? animation1.source = "images/Charging_Car.gif" : animation1.source = "images/Empty_Car.gif";
+                        pwmSwitch.checked ? animation1.source = "images/Charging_Car.gif" : animation1.source = "images/Charged_Car.gif";
                         pwmSwitch.checked ? animation.source = "images/loop.gif" : animation.source = "images/end.gif";
-                        //carDrive();
                         pwmSwitch.checked ? animation1.state = "CENTERED" : animation1.state = "OFF_RIGHT";
                     }
                 }
@@ -719,9 +721,10 @@ ApplicationWindow {
             GroupBox {
                 id: inputBox
                 title: qsTr("Inputs")
-                anchors.verticalCenter: parent.verticalCenter
-                width: window.width/3
-                height: window.height*4/6
+                //anchors.verticalCenter: parent.verticalCenter
+                y: window.height*1/6 + 5
+                width: window.width*2/5
+                height: window.height*6/9
 
                 background: Rectangle {
                     y: inputBox.topPadding - inputBox.bottomPadding
@@ -738,14 +741,14 @@ ApplicationWindow {
                     text: inputBox.title
                     color: "#3ba2f5"
                     elide: Text.ElideLeft
-                    font.pointSize: 20
+                    font.pointSize: 20*window.width/1200
                 }
 
                 Label {
                     id: vdc
                     objectName: "Vdc"
                     text: "Charging Voltage: " + serialport.V_Dc + "V"
-                    font.pointSize: 25
+                    font.pointSize: 25*window.width/1200
                 }
 
                 ProgressBar {
@@ -800,7 +803,7 @@ ApplicationWindow {
                     id: idc
                     objectName: "Vdc"
                     text: "Charging Current: " + serialport.I_Dc + "A"
-                    font.pointSize: 25
+                    font.pointSize: 25*window.width/1200
                     anchors.top: vdcGauge.bottom
                     anchors.topMargin: 5
                 }
@@ -842,7 +845,7 @@ ApplicationWindow {
                     id: progressLabel
                     text: "Charging Power:   " + (serialport.V_Dc * serialport.I_Dc).toFixed(2) + "W"
                     anchors.top: idcGauge.bottom
-                    font.pointSize: 25
+                    font.pointSize: 25*window.width/1200
                 }
 
 //                CircularGauge {
@@ -867,29 +870,29 @@ ApplicationWindow {
 //                    stepSize: 1
 //                }
 
-                Item {
-                    id: container
-                    width: window.width
-                    height: Math.min(window.width, window.height)
-                    anchors.centerIn: parent
+//                Item {
+//                    id: container
+//                    width: window.width
+//                    height: Math.min(window.width, window.height)
+//                    anchors.centerIn: parent
 //                    anchors.top: progressLabel.bottom
 //                    anchors.topMargin: 20
 //                    anchors.left: parent.left
 //                    anchors.leftMargin: (parent.width - powerGauge.width)/2
 
-                    Row {
-                        id: gaugeRow
-                        spacing: container.width * 0.02
-                        anchors.centerIn: parent
+//                    Row {
+//                        id: gaugeRow
+//                        //spacing: container.width * 0.02
+//                        anchors.centerIn: parent
 
                         CircularGauge {
                             id: powerGauge
                             value: (serialport.V_Dc * serialport.I_Dc)
                             anchors.top: progressLabel.bottom
-                            anchors.topMargin: 20
+                            anchors.topMargin: 5*window.height/707
                             anchors.left: parent.left
                             anchors.leftMargin: (parent.width - powerGauge.width)/2
-                            maximumValue: 200
+                            maximumValue: maxPow.text
                             minimumValue: 0
                             // We set the width to the height, because the height will always be
                             // the more limited factor. Also, all circular controls letterbox
@@ -898,7 +901,7 @@ ApplicationWindow {
                             // because they're laid out horizontally, and that would create
                             // large horizontal gaps between gauges on wide screens.
                             width: height
-                            height: container.height * 0.5
+                            height: parent.height * 0.6
 
                             style: CircularGaugeStyle {
                                 tickmarkInset: toPixels(0.04)
@@ -1022,8 +1025,8 @@ ApplicationWindow {
                                 foreground: null
                             }
                         }
-                    }
-                }
+                    //}
+                //}
 
             }
         }

@@ -91,12 +91,13 @@ ApplicationWindow {
 
             Label {
                 id: titleLabel
-                text: listView.currentItem ? listView.currentItem.text : "Wireless Power Transfer System Dashboard"
-                font.pixelSize: 20
+                text: listView.currentItem ? listView.currentItem.text : "Wireless Charging Dashboard"
+                //font.pixelSize: 20
                 elide: Label.ElideRight
                 horizontalAlignment: Qt.AlignHCenter
                 verticalAlignment: Qt.AlignVCenter
                 Layout.fillWidth: true
+                font.pointSize: 36
             }
 
             ToolButton {
@@ -525,6 +526,21 @@ ApplicationWindow {
         }
     }
 
+    function loopAnim() {
+        if(animation.source == "qrc:/images/loop.gif" && animation.currentFrame > 98)
+            animation.currentFrame = 23;
+    }
+
+    function sourceChange() {
+        animation.currentFrame = 0;
+        animation.paused = false;
+        animation.playing = true;
+    }
+
+    function carDrive() {
+
+    }
+
     StackView {
         id: stackView
         width: 1900
@@ -535,23 +551,26 @@ ApplicationWindow {
 
             AnimatedImage {
                 id: animation
-                source: "images/wpt.gif"
-                width: 550
+                source: "images/start.gif"
+                width: 650*window.width/1200
                 fillMode: Image.PreserveAspectFit
                 anchors.verticalCenter: parent.verticalCenter
                 anchors.horizontalCenter: parent.horizontalCenter
-                paused: pwmSwitch.checked ? false : true
-                currentFrame: pwmSwitch.checked ? currentFrame : 0
+                onCurrentFrameChanged: loopAnim();
+                onPausedChanged: console.log("paused: " + paused);
+                onSourceChanged: sourceChange()
             }
 
             AnimatedImage {
                 id: animation1
                 source: "images/Empty_Car.gif"
-                anchors.left: animation.right
-                anchors.leftMargin: 90
-                anchors.verticalCenter: parent.verticalCenter
-                width: 650
-                height: 650
+//                anchors.left: animation.right
+//                anchors.leftMargin: 90
+                anchors.bottom: animation.top
+                anchors.bottomMargin: -100*window.width/1200
+                anchors.horizontalCenter: parent.horizontalCenter
+                //anchors.verticalCenter: parent.verticalCenter
+                width: 300*window.width/1200
                 fillMode: Image.PreserveAspectFit
 
                 //paused: pwmSwitch.checked ? false : true
@@ -596,12 +615,7 @@ ApplicationWindow {
                     onClicked: {
                         pwmSwitch.checked ? serialport.sendCmd(constants.pwm_en,0,0,0) : serialport.sendCmd(constants.pwm_dis,0,0,0);
                         pwmSwitch.checked ? animation1.source = "images/Charging_Car.gif" : animation1.source = "images/Empty_Car.gif";
-                        //if(animation1.source == "images/Empty_Car.gif" && pwmSwitch.checked)
-                            //animation1.source = "images/Charging_Car.gif";
-//                        else{
-//                            animation1.source = "images/Empty_Car.gif";
-////                            animation1.paused = true;
-//                        }
+                        pwmSwitch.checked ? animation.source = "images/loop.gif" : animation.source = "images/end.gif";
                     }
                 }
             }

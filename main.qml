@@ -495,6 +495,7 @@ ApplicationWindow {
                     }
 
                     Button {
+                        id: applySettings
                         text: "Apply"
                         onClicked: {
                             freqSlider.to = maxFreq.text
@@ -510,14 +511,14 @@ ApplicationWindow {
                         id: freqRow
                         Label {
                             id: freqLabel
-                            anchors.top: minPower.bottom
+                            anchors.top: applySettings.bottom
                             anchors.topMargin: 15
                             text: "Switching Frequency:"
                         }
 
                         Label {
                             id: freq
-                            anchors.top: minPower.bottom
+                            anchors.top: freqRow.bottom
                             anchors.topMargin: 15
                             anchors.right: parent.right
                             //text: (pwmFreq.length > 0) ? pwmFreq.text + " Hz" : "N/A"
@@ -1096,7 +1097,7 @@ ApplicationWindow {
                     chart.series(0).clear();
                 }
                 chart.series(0).append(parseInt(time.text), serialport.V_Dc * serialport.I_Dc);
-                time.linecount++;
+                //time.lineCount++;
             }
         }
     }

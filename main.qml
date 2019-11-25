@@ -538,7 +538,31 @@ ApplicationWindow {
     }
 
     function carDrive() {
+        if(pwmSwitch.checked) {
+            animation1.x = 0;
+            while(animation1.x < (window.width - (animation1.width/2))){
+                animation1.x++;
+            }
+        }
+        else {
+            while(animation1.x < window.width + animation1.width) {
+                animation1.x++;
+            }
+        }
+    }
 
+    function getBezierCurve(name)
+    {
+        if (name === "Easing.Bezier")
+            return easingCurve;
+        return [];
+    }
+
+    function returnToStartPos(){
+        if(animation1.x == window.width)
+            animation1.state = "OFF_SCREEN";
+        if(animation1.x == -1*animation1.width)
+            animation1.state = "OFF_LEFT";
     }
 
     StackView {
@@ -557,7 +581,6 @@ ApplicationWindow {
                 anchors.verticalCenter: parent.verticalCenter
                 anchors.horizontalCenter: parent.horizontalCenter
                 onCurrentFrameChanged: loopAnim();
-                onPausedChanged: console.log("paused: " + paused);
                 onSourceChanged: sourceChange()
             }
 
@@ -568,13 +591,84 @@ ApplicationWindow {
 //                anchors.leftMargin: 90
                 anchors.bottom: animation.top
                 anchors.bottomMargin: -100*window.width/1200
-                anchors.horizontalCenter: parent.horizontalCenter
+                //x: x == window.width ? -1*animation1.width : x
+                x: 0;
+                //anchors.horizontalCenter: parent.horizontalCenter
                 //anchors.verticalCenter: parent.verticalCenter
                 width: 300*window.width/1200
                 fillMode: Image.PreserveAspectFit
 
                 //paused: pwmSwitch.checked ? false : true
                 currentFrame: pwmSwitch.checked ? currentFrame : 0
+
+                onXChanged: returnToStartPos()
+
+                state: "OFF_LEFT"
+                property var easingCurve: [ 0.2, 0.2, 0.13, 0.65, 0.2, 0.8,
+                                            0.624, 0.98, 0.93, 0.95, 1, 1 ]
+                states: [
+                    State {
+                        name: "CENTERED"
+                        PropertyChanges {
+                            target: animation1;
+                            x: window.width/2 - animation1.width/2
+                        }
+                    },
+                    State {
+                        name: "OFF_RIGHT"
+                        PropertyChanges {
+                            target: animation1;
+                            x: window.width
+                        }
+                    },
+                    State {
+                        name: "OFF_LEFT"
+                        PropertyChanges {
+                            target: animation1;
+                            x: 0
+                        }
+                    },
+                    State {
+                        name: "OFF_SCREEN"
+                        PropertyChanges {
+                            target: animation1;
+                            x: -1*animation1.width
+                        }
+                    }
+
+                ]
+                transitions: [
+                    Transition {
+                        from: "OFF_LEFT"
+                        to: "CENTERED"
+                        NumberAnimation {
+                            properties: "x";
+                            duration: 1000;
+                            easing.type: Easing.OutQuad;
+                            easing.bezierCurve: getBezierCurve("Easing.OutQuad");
+                        }
+                    },
+                    Transition {
+                        from: "CENTERED"
+                        to: "OFF_RIGHT"
+                        NumberAnimation {
+                            properties: "x";
+                            duration: 1000;
+                            easing.type: Easing.InQuad;
+                            easing.bezierCurve: getBezierCurve("Easing.InQuad");
+                        }
+                    },
+                    Transition {
+                        from: "OFF_SCREEN"
+                        to: "OFF_LEFT"
+                        NumberAnimation {
+                            properties: "x";
+                            duration: 750;
+                            easing.type: Easing.InQuad;
+                            easing.bezierCurve: getBezierCurve("Easing.InQuad");
+                        }
+                    }
+                ]
             }
 
             GroupBox {
@@ -616,6 +710,8 @@ ApplicationWindow {
                         pwmSwitch.checked ? serialport.sendCmd(constants.pwm_en,0,0,0) : serialport.sendCmd(constants.pwm_dis,0,0,0);
                         pwmSwitch.checked ? animation1.source = "images/Charging_Car.gif" : animation1.source = "images/Empty_Car.gif";
                         pwmSwitch.checked ? animation.source = "images/loop.gif" : animation.source = "images/end.gif";
+                        //carDrive();
+                        pwmSwitch.checked ? animation1.state = "CENTERED" : animation1.state = "OFF_RIGHT";
                     }
                 }
             }

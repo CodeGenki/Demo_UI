@@ -778,7 +778,7 @@ ApplicationWindow {
                     id: vdc
                     objectName: "Vdc"
                     text: "Charging Voltage: " + serialport.V_Dc + "V"
-                    font.pointSize: 25*window.width/1200
+                    font.pointSize: 22*window.width/1200
                 }
 
                 ProgressBar {
@@ -833,7 +833,7 @@ ApplicationWindow {
                     id: idc
                     objectName: "Vdc"
                     text: "Charging Current: " + serialport.I_Dc + "A"
-                    font.pointSize: 25*window.width/1200
+                    font.pointSize: 22*window.width/1200
                     anchors.top: vdcGauge.bottom
                     anchors.topMargin: 5
                 }
@@ -875,7 +875,7 @@ ApplicationWindow {
                     id: progressLabel
                     text: "Charging Power:   " + (serialport.V_Dc * serialport.I_Dc).toFixed(2) + "W"
                     anchors.top: idcGauge.bottom
-                    font.pointSize: 25*window.width/1200
+                    font.pointSize: 22*window.width/1200
                 }
 
                 CircularGauge {

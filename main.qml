@@ -509,17 +509,14 @@ ApplicationWindow {
 
                     RowLayout{
                         id: freqRow
+                        anchors.top: applySettings.bottom
+                        anchors.topMargin: 15
                         Label {
                             id: freqLabel
-                            anchors.top: applySettings.bottom
-                            anchors.topMargin: 15
                             text: "Switching Frequency:"
                         }
-
                         Label {
                             id: freq
-                            anchors.top: freqRow.bottom
-                            anchors.topMargin: 15
                             anchors.right: parent.right
                             //text: (pwmFreq.length > 0) ? pwmFreq.text + " Hz" : "N/A"
                             text: freqSlider.value + " kHz"
@@ -531,6 +528,7 @@ ApplicationWindow {
                         id: freqSlider
                         x: -2
                         width: advancedControls.width
+                        anchors.top: freqRow.bottom
                         rightPadding: 5
                         leftPadding: 0
                         bottomPadding: 0

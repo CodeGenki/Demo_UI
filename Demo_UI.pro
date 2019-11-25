@@ -37,5 +37,7 @@ HEADERS += \
 
 FORMS +=
 
+RC_ICONS = icons/gallery/WPT.ico
+
 DISTFILES += \
     DashboardGaugeStyle.qml

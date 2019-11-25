@@ -36,3 +36,6 @@ HEADERS += \
     cmdlist.h
 
 FORMS +=
+
+DISTFILES += \
+    DashboardGaugeStyle.qml

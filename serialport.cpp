@@ -43,7 +43,11 @@ float current_arr[100];
 int leni = 0;
 float ii = 0;
 
-int counterMax = 5;
+float voltage_arr[100];
+int lenv = 0;
+float vv = 0;
+
+int counterMax = 20;
 int counter = 0;
 void SerialPort::getDataFromPacket()
 {
@@ -63,6 +67,7 @@ void SerialPort::getDataFromPacket()
     if(current < 0)
         current = 0;
 
+    // CURRENT AVERAGING
     leni++;
     ii = 0;
     if(leni >= 100) {
@@ -76,7 +81,22 @@ void SerialPort::getDataFromPacket()
     ii /= (j+1);
     current = ii;
 
+    // VOLTAGE AVERAGING
+    lenv++;
+    vv = 0;
+    if(lenv >= 100) {
+        lenv = 0;
+    }
+    voltage_arr[lenv] = voltage;
+    int k = 0;
+    for(k=0;k<lenv;k++){
+        vv += voltage_arr[k];
+    }
+    vv /= (k+1);
+    voltage = vv;
+
     //setV_Dc(QString::number(payload_float[1]));
+    counter++;
     if (counter > counterMax) {
         setV_Dc(QString::number(double(voltage), 'f', 2));
         setI_Dc(QString::number(double(current), 'f', 2));

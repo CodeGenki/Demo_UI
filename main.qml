@@ -749,27 +749,186 @@ ApplicationWindow {
                     font.pointSize: 25
                 }
 
-                CircularGauge {
-                    id: powerGauge
-                    anchors.top: progressLabel.bottom
-                    anchors.topMargin: 20
-                    anchors.left: parent.left
-                    anchors.leftMargin: (parent.width - powerGauge.width)/2
-                    style: CircularGaugeStyle {
-                        needle: Rectangle {
-                            y: outerRadius * 0.15
-                            implicitWidth: outerRadius * 0.03
-                            implicitHeight: outerRadius * 0.9
-                            antialiasing: true
-                            color: Qt.rgba(0.66, 0.3, 0, 1)
+//                CircularGauge {
+//                    id: powerGauge
+//                    anchors.top: progressLabel.bottom
+//                    anchors.topMargin: 20
+//                    anchors.left: parent.left
+//                    anchors.leftMargin: (parent.width - powerGauge.width)/2
+//                    style: CircularGaugeStyle {
+//                        needle: Rectangle {
+//                            y: outerRadius * 0.15
+//                            implicitWidth: outerRadius * 0.03
+//                            implicitHeight: outerRadius * 0.9
+//                            antialiasing: true
+//                            color: Qt.rgba(0.66, 0.3, 0, 1)
+//                        }
+//                        tickmarkStepSize: 5
+//                    }
+//                    maximumValue: 60
+//                    minimumValue: 0
+//                    value: (serialport.V_Dc * serialport.I_Dc)
+//                    stepSize: 1
+//                }
+
+                Item {
+                    id: container
+                    width: window.width
+                    height: Math.min(window.width, window.height)
+                    anchors.centerIn: parent
+//                    anchors.top: progressLabel.bottom
+//                    anchors.topMargin: 20
+//                    anchors.left: parent.left
+//                    anchors.leftMargin: (parent.width - powerGauge.width)/2
+
+                    Row {
+                        id: gaugeRow
+                        spacing: container.width * 0.02
+                        anchors.centerIn: parent
+
+                        CircularGauge {
+                            id: powerGauge
+                            value: (serialport.V_Dc * serialport.I_Dc)
+                            anchors.top: progressLabel.bottom
+                            anchors.topMargin: 20
+                            anchors.left: parent.left
+                            anchors.leftMargin: (parent.width - powerGauge.width)/2
+                            maximumValue: 200
+                            minimumValue: 0
+                            // We set the width to the height, because the height will always be
+                            // the more limited factor. Also, all circular controls letterbox
+                            // their contents to ensure that they remain circular. However, we
+                            // don't want to extra space on the left and right of our gauges,
+                            // because they're laid out horizontally, and that would create
+                            // large horizontal gaps between gauges on wide screens.
+                            width: height
+                            height: container.height * 0.5
+
+                            style: CircularGaugeStyle {
+                                tickmarkInset: toPixels(0.04)
+                                minorTickmarkInset: tickmarkInset
+                                labelStepSize: 20
+                                labelInset: toPixels(0.23)
+
+                                property real xCenter: outerRadius
+                                property real yCenter: outerRadius
+                                property real needleLength: outerRadius - tickmarkInset * 1.25
+                                property real needleTipWidth: toPixels(0.02)
+                                property real needleBaseWidth: toPixels(0.06)
+                                property bool halfGauge: false
+
+                                function toPixels(percentage) {
+                                    return percentage * outerRadius;
+                                }
+
+                                function degToRad(degrees) {
+                                    return degrees * (Math.PI / 180);
+                                }
+
+                                function radToDeg(radians) {
+                                    return radians * (180 / Math.PI);
+                                }
+
+                                function paintBackground(ctx) {
+                                    if (halfGauge) {
+                                        ctx.beginPath();
+                                        ctx.rect(0, 0, ctx.canvas.width, ctx.canvas.height / 2);
+                                        ctx.clip();
+                                    }
+
+                                    ctx.beginPath();
+                                    ctx.fillStyle = "black";
+                                    ctx.ellipse(0, 0, ctx.canvas.width, ctx.canvas.height);
+                                    ctx.fill();
+
+                                    ctx.beginPath();
+                                    ctx.lineWidth = tickmarkInset;
+                                    ctx.strokeStyle = "black";
+                                    ctx.arc(xCenter, yCenter, outerRadius - ctx.lineWidth / 2, outerRadius - ctx.lineWidth / 2, 0, Math.PI * 2);
+                                    ctx.stroke();
+
+                                    ctx.beginPath();
+                                    ctx.lineWidth = tickmarkInset / 2;
+                                    ctx.strokeStyle = "#222";
+                                    ctx.arc(xCenter, yCenter, outerRadius - ctx.lineWidth / 2, outerRadius - ctx.lineWidth / 2, 0, Math.PI * 2);
+                                    ctx.stroke();
+
+                                    ctx.beginPath();
+                                    var gradient = ctx.createRadialGradient(xCenter, yCenter, 0, xCenter, yCenter, outerRadius * 1.5);
+                                    gradient.addColorStop(0, Qt.rgba(1, 1, 1, 0));
+                                    gradient.addColorStop(0.7, Qt.rgba(1, 1, 1, 0.13));
+                                    gradient.addColorStop(1, Qt.rgba(1, 1, 1, 1));
+                                    ctx.fillStyle = gradient;
+                                    ctx.arc(xCenter, yCenter, outerRadius - tickmarkInset, outerRadius - tickmarkInset, 0, Math.PI * 2);
+                                    ctx.fill();
+                                }
+
+                                background: Canvas {
+                                    onPaint: {
+                                        var ctx = getContext("2d");
+                                        ctx.reset();
+                                        paintBackground(ctx);
+                                    }
+
+                                    Text {
+                                        id: speedText
+                                        font.pixelSize: toPixels(0.3)
+                                        text: kphInt
+                                        color: "white"
+                                        horizontalAlignment: Text.AlignRight
+                                        anchors.horizontalCenter: parent.horizontalCenter
+                                        anchors.top: parent.verticalCenter
+                                        anchors.topMargin: toPixels(0.1)
+
+                                        readonly property int kphInt: control.value
+                                    }
+                                    Text {
+                                        text: "Watts"
+                                        color: "white"
+                                        font.pixelSize: toPixels(0.09)
+                                        anchors.top: speedText.bottom
+                                        anchors.horizontalCenter: parent.horizontalCenter
+                                    }
+                                }
+
+                                needle: Canvas {
+                                    implicitWidth: needleBaseWidth
+                                    implicitHeight: needleLength
+
+                                    property real xCenter: width / 2
+                                    property real yCenter: height / 2
+
+                                    onPaint: {
+                                        var ctx = getContext("2d");
+                                        ctx.reset();
+
+                                        ctx.beginPath();
+                                        ctx.moveTo(xCenter, height);
+                                        ctx.lineTo(xCenter - needleBaseWidth / 2, height - needleBaseWidth / 2);
+                                        ctx.lineTo(xCenter - needleTipWidth / 2, 0);
+                                        ctx.lineTo(xCenter, yCenter - needleLength);
+                                        ctx.lineTo(xCenter, 0);
+                                        ctx.closePath();
+                                        ctx.fillStyle = Qt.rgba(0.66, 0, 0, 0.66);
+                                        ctx.fill();
+
+                                        ctx.beginPath();
+                                        ctx.moveTo(xCenter, height)
+                                        ctx.lineTo(width, height - needleBaseWidth / 2);
+                                        ctx.lineTo(xCenter + needleTipWidth / 2, 0);
+                                        ctx.lineTo(xCenter, 0);
+                                        ctx.closePath();
+                                        ctx.fillStyle = Qt.lighter(Qt.rgba(0.66, 0, 0, 0.66));
+                                        ctx.fill();
+                                    }
+                                }
+
+                                foreground: null
+                            }
                         }
-                        tickmarkStepSize: 5
                     }
-                    maximumValue: 60
-                    minimumValue: 0
-                    value: (serialport.V_Dc * serialport.I_Dc)
-                    stepSize: 1
                 }
+
             }
         }
     }

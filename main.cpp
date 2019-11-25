@@ -1,4 +1,5 @@
 #include <QGuiApplication>
+#include <QApplication>
 #include <QQmlApplicationEngine>
 #include <QQuickStyle>
 #include <QSerialPortInfo>
@@ -11,7 +12,8 @@
 
 int main(int argc, char *argv[])
 {
-    QGuiApplication app(argc, argv);
+    //QGuiApplication app(argc, argv);
+    QApplication app(argc, argv);
 
     qmlRegisterType<SerialPort>("io.qt.wpt.serialport", 1, 0, "SerialPort");
 

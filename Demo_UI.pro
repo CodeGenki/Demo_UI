@@ -1,4 +1,4 @@
-QT += quick core gui printsupport serialport quickcontrols2
+QT += quick core gui printsupport serialport quickcontrols2 charts
 CONFIG += c++11
 
 # The following define makes your compiler emit warnings if you use

@@ -11,6 +11,7 @@ import Qt.labs.settings 1.0
 import io.qt.wpt.serialport 1.0
 import QtQuick.Controls.Styles 1.4
 import QtQuick.Extras 1.4
+import QtCharts 2.1
 
 ApplicationWindow {
     id: window
@@ -102,6 +103,7 @@ ApplicationWindow {
 
             ToolButton {
                 icon.name: "menu"
+                icon.source: "icons/gallery/20x20/menu.png"
                 onClicked: optionsMenu.open()
 
                 Menu {
@@ -110,14 +112,43 @@ ApplicationWindow {
                     transformOrigin: Menu.TopRight
 
                     MenuItem {
-                        text: "Settings"
-                        onTriggered: settingsDialog.open()
-                    }
-                    MenuItem {
                         text: "About"
                         onTriggered: aboutDialog.open()
                     }
+                    MenuItem {
+                        text: "Chart"
+                        onTriggered: chartDialog.open()
+                    }
                 }
+            }
+        }
+    }
+
+    Dialog {
+        id: aboutDialog
+        modal: true
+        focus: true
+        title: "About"
+        x: (window.width - width) / 2
+        y: window.height / 6
+        width: Math.min(window.width, window.height) / 3 * 2
+        contentHeight: aboutColumn.height
+
+        Column {
+            id: aboutColumn
+            spacing: 20
+            Label {
+                width: aboutDialog.availableWidth
+                text: "UT ECE Senior Design Project Spring 2019 - Fall 2019"
+                wrapMode: Label.Wrap
+                font.pixelSize: 12
+            }
+
+            Label {
+                width: aboutDialog.availableWidth
+                text: "Mark De Hoyos, Hannah Maxwell, Tariq Muhanna, Genki Oji, Robert Qian, Mark Sand"
+                wrapMode: Label.Wrap
+                font.pixelSize: 12
             }
         }
     }
@@ -848,186 +879,146 @@ ApplicationWindow {
                     font.pointSize: 25*window.width/1200
                 }
 
-//                CircularGauge {
-//                    id: powerGauge
-//                    anchors.top: progressLabel.bottom
-//                    anchors.topMargin: 20
-//                    anchors.left: parent.left
-//                    anchors.leftMargin: (parent.width - powerGauge.width)/2
-//                    style: CircularGaugeStyle {
-//                        needle: Rectangle {
-//                            y: outerRadius * 0.15
-//                            implicitWidth: outerRadius * 0.03
-//                            implicitHeight: outerRadius * 0.9
-//                            antialiasing: true
-//                            color: Qt.rgba(0.66, 0.3, 0, 1)
-//                        }
-//                        tickmarkStepSize: 5
-//                    }
-//                    maximumValue: 60
-//                    minimumValue: 0
-//                    value: (serialport.V_Dc * serialport.I_Dc)
-//                    stepSize: 1
-//                }
+                CircularGauge {
+                    id: powerGauge
+                    value: (serialport.V_Dc * serialport.I_Dc)
+                    anchors.top: progressLabel.bottom
+                    anchors.topMargin: 5*window.height/707
+                    anchors.left: parent.left
+                    anchors.leftMargin: (parent.width - powerGauge.width)/2
+                    maximumValue: maxPow.text
+                    minimumValue: 0
+                    // We set the width to the height, because the height will always be
+                    // the more limited factor. Also, all circular controls letterbox
+                    // their contents to ensure that they remain circular. However, we
+                    // don't want to extra space on the left and right of our gauges,
+                    // because they're laid out horizontally, and that would create
+                    // large horizontal gaps between gauges on wide screens.
+                    width: height
+                    height: parent.height * 0.6
 
-//                Item {
-//                    id: container
-//                    width: window.width
-//                    height: Math.min(window.width, window.height)
-//                    anchors.centerIn: parent
-//                    anchors.top: progressLabel.bottom
-//                    anchors.topMargin: 20
-//                    anchors.left: parent.left
-//                    anchors.leftMargin: (parent.width - powerGauge.width)/2
+                    style: CircularGaugeStyle {
+                        tickmarkInset: toPixels(0.04)
+                        minorTickmarkInset: tickmarkInset
+                        labelStepSize: 20
+                        labelInset: toPixels(0.23)
 
-//                    Row {
-//                        id: gaugeRow
-//                        //spacing: container.width * 0.02
-//                        anchors.centerIn: parent
+                        property real xCenter: outerRadius
+                        property real yCenter: outerRadius
+                        property real needleLength: outerRadius - tickmarkInset * 1.25
+                        property real needleTipWidth: toPixels(0.02)
+                        property real needleBaseWidth: toPixels(0.06)
+                        property bool halfGauge: false
 
-                        CircularGauge {
-                            id: powerGauge
-                            value: (serialport.V_Dc * serialport.I_Dc)
-                            anchors.top: progressLabel.bottom
-                            anchors.topMargin: 5*window.height/707
-                            anchors.left: parent.left
-                            anchors.leftMargin: (parent.width - powerGauge.width)/2
-                            maximumValue: maxPow.text
-                            minimumValue: 0
-                            // We set the width to the height, because the height will always be
-                            // the more limited factor. Also, all circular controls letterbox
-                            // their contents to ensure that they remain circular. However, we
-                            // don't want to extra space on the left and right of our gauges,
-                            // because they're laid out horizontally, and that would create
-                            // large horizontal gaps between gauges on wide screens.
-                            width: height
-                            height: parent.height * 0.6
+                        function toPixels(percentage) {
+                            return percentage * outerRadius;
+                        }
 
-                            style: CircularGaugeStyle {
-                                tickmarkInset: toPixels(0.04)
-                                minorTickmarkInset: tickmarkInset
-                                labelStepSize: 20
-                                labelInset: toPixels(0.23)
+                        function degToRad(degrees) {
+                            return degrees * (Math.PI / 180);
+                        }
 
-                                property real xCenter: outerRadius
-                                property real yCenter: outerRadius
-                                property real needleLength: outerRadius - tickmarkInset * 1.25
-                                property real needleTipWidth: toPixels(0.02)
-                                property real needleBaseWidth: toPixels(0.06)
-                                property bool halfGauge: false
+                        function radToDeg(radians) {
+                            return radians * (180 / Math.PI);
+                        }
 
-                                function toPixels(percentage) {
-                                    return percentage * outerRadius;
-                                }
+                        function paintBackground(ctx) {
+                            if (halfGauge) {
+                                ctx.beginPath();
+                                ctx.rect(0, 0, ctx.canvas.width, ctx.canvas.height / 2);
+                                ctx.clip();
+                            }
 
-                                function degToRad(degrees) {
-                                    return degrees * (Math.PI / 180);
-                                }
+                            ctx.beginPath();
+                            ctx.fillStyle = "black";
+                            ctx.ellipse(0, 0, ctx.canvas.width, ctx.canvas.height);
+                            ctx.fill();
 
-                                function radToDeg(radians) {
-                                    return radians * (180 / Math.PI);
-                                }
+                            ctx.beginPath();
+                            ctx.lineWidth = tickmarkInset;
+                            ctx.strokeStyle = "black";
+                            ctx.arc(xCenter, yCenter, outerRadius - ctx.lineWidth / 2, outerRadius - ctx.lineWidth / 2, 0, Math.PI * 2);
+                            ctx.stroke();
 
-                                function paintBackground(ctx) {
-                                    if (halfGauge) {
-                                        ctx.beginPath();
-                                        ctx.rect(0, 0, ctx.canvas.width, ctx.canvas.height / 2);
-                                        ctx.clip();
-                                    }
+                            ctx.beginPath();
+                            ctx.lineWidth = tickmarkInset / 2;
+                            ctx.strokeStyle = "#222";
+                            ctx.arc(xCenter, yCenter, outerRadius - ctx.lineWidth / 2, outerRadius - ctx.lineWidth / 2, 0, Math.PI * 2);
+                            ctx.stroke();
 
-                                    ctx.beginPath();
-                                    ctx.fillStyle = "black";
-                                    ctx.ellipse(0, 0, ctx.canvas.width, ctx.canvas.height);
-                                    ctx.fill();
+                            ctx.beginPath();
+                            var gradient = ctx.createRadialGradient(xCenter, yCenter, 0, xCenter, yCenter, outerRadius * 1.5);
+                            gradient.addColorStop(0, Qt.rgba(1, 1, 1, 0));
+                            gradient.addColorStop(0.7, Qt.rgba(1, 1, 1, 0.13));
+                            gradient.addColorStop(1, Qt.rgba(1, 1, 1, 1));
+                            ctx.fillStyle = gradient;
+                            ctx.arc(xCenter, yCenter, outerRadius - tickmarkInset, outerRadius - tickmarkInset, 0, Math.PI * 2);
+                            ctx.fill();
+                        }
 
-                                    ctx.beginPath();
-                                    ctx.lineWidth = tickmarkInset;
-                                    ctx.strokeStyle = "black";
-                                    ctx.arc(xCenter, yCenter, outerRadius - ctx.lineWidth / 2, outerRadius - ctx.lineWidth / 2, 0, Math.PI * 2);
-                                    ctx.stroke();
+                        background: Canvas {
+                            onPaint: {
+                                var ctx = getContext("2d");
+                                ctx.reset();
+                                paintBackground(ctx);
+                            }
 
-                                    ctx.beginPath();
-                                    ctx.lineWidth = tickmarkInset / 2;
-                                    ctx.strokeStyle = "#222";
-                                    ctx.arc(xCenter, yCenter, outerRadius - ctx.lineWidth / 2, outerRadius - ctx.lineWidth / 2, 0, Math.PI * 2);
-                                    ctx.stroke();
+                            Text {
+                                id: speedText
+                                font.pixelSize: toPixels(0.3)
+                                text: kphInt
+                                color: "white"
+                                horizontalAlignment: Text.AlignRight
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                anchors.top: parent.verticalCenter
+                                anchors.topMargin: toPixels(0.1)
 
-                                    ctx.beginPath();
-                                    var gradient = ctx.createRadialGradient(xCenter, yCenter, 0, xCenter, yCenter, outerRadius * 1.5);
-                                    gradient.addColorStop(0, Qt.rgba(1, 1, 1, 0));
-                                    gradient.addColorStop(0.7, Qt.rgba(1, 1, 1, 0.13));
-                                    gradient.addColorStop(1, Qt.rgba(1, 1, 1, 1));
-                                    ctx.fillStyle = gradient;
-                                    ctx.arc(xCenter, yCenter, outerRadius - tickmarkInset, outerRadius - tickmarkInset, 0, Math.PI * 2);
-                                    ctx.fill();
-                                }
-
-                                background: Canvas {
-                                    onPaint: {
-                                        var ctx = getContext("2d");
-                                        ctx.reset();
-                                        paintBackground(ctx);
-                                    }
-
-                                    Text {
-                                        id: speedText
-                                        font.pixelSize: toPixels(0.3)
-                                        text: kphInt
-                                        color: "white"
-                                        horizontalAlignment: Text.AlignRight
-                                        anchors.horizontalCenter: parent.horizontalCenter
-                                        anchors.top: parent.verticalCenter
-                                        anchors.topMargin: toPixels(0.1)
-
-                                        readonly property int kphInt: control.value
-                                    }
-                                    Text {
-                                        text: "Watts"
-                                        color: "white"
-                                        font.pixelSize: toPixels(0.09)
-                                        anchors.top: speedText.bottom
-                                        anchors.horizontalCenter: parent.horizontalCenter
-                                    }
-                                }
-
-                                needle: Canvas {
-                                    implicitWidth: needleBaseWidth
-                                    implicitHeight: needleLength
-
-                                    property real xCenter: width / 2
-                                    property real yCenter: height / 2
-
-                                    onPaint: {
-                                        var ctx = getContext("2d");
-                                        ctx.reset();
-
-                                        ctx.beginPath();
-                                        ctx.moveTo(xCenter, height);
-                                        ctx.lineTo(xCenter - needleBaseWidth / 2, height - needleBaseWidth / 2);
-                                        ctx.lineTo(xCenter - needleTipWidth / 2, 0);
-                                        ctx.lineTo(xCenter, yCenter - needleLength);
-                                        ctx.lineTo(xCenter, 0);
-                                        ctx.closePath();
-                                        ctx.fillStyle = Qt.rgba(0.66, 0, 0, 0.66);
-                                        ctx.fill();
-
-                                        ctx.beginPath();
-                                        ctx.moveTo(xCenter, height)
-                                        ctx.lineTo(width, height - needleBaseWidth / 2);
-                                        ctx.lineTo(xCenter + needleTipWidth / 2, 0);
-                                        ctx.lineTo(xCenter, 0);
-                                        ctx.closePath();
-                                        ctx.fillStyle = Qt.lighter(Qt.rgba(0.66, 0, 0, 0.66));
-                                        ctx.fill();
-                                    }
-                                }
-
-                                foreground: null
+                                readonly property int kphInt: control.value
+                            }
+                            Text {
+                                text: "Watts"
+                                color: "white"
+                                font.pixelSize: toPixels(0.09)
+                                anchors.top: speedText.bottom
+                                anchors.horizontalCenter: parent.horizontalCenter
                             }
                         }
-                    //}
-                //}
 
+                        needle: Canvas {
+                            implicitWidth: needleBaseWidth
+                            implicitHeight: needleLength
+
+                            property real xCenter: width / 2
+                            property real yCenter: height / 2
+
+                            onPaint: {
+                                var ctx = getContext("2d");
+                                ctx.reset();
+
+                                ctx.beginPath();
+                                ctx.moveTo(xCenter, height);
+                                ctx.lineTo(xCenter - needleBaseWidth / 2, height - needleBaseWidth / 2);
+                                ctx.lineTo(xCenter - needleTipWidth / 2, 0);
+                                ctx.lineTo(xCenter, yCenter - needleLength);
+                                ctx.lineTo(xCenter, 0);
+                                ctx.closePath();
+                                ctx.fillStyle = Qt.rgba(0.66, 0, 0, 0.66);
+                                ctx.fill();
+
+                                ctx.beginPath();
+                                ctx.moveTo(xCenter, height)
+                                ctx.lineTo(width, height - needleBaseWidth / 2);
+                                ctx.lineTo(xCenter + needleTipWidth / 2, 0);
+                                ctx.lineTo(xCenter, 0);
+                                ctx.closePath();
+                                ctx.fillStyle = Qt.lighter(Qt.rgba(0.66, 0, 0, 0.66));
+                                ctx.fill();
+                            }
+                        }
+
+                        foreground: null
+                    }
+                }
             }
         }
     }
@@ -1087,58 +1078,68 @@ ApplicationWindow {
         }
     }
 
+    Item {
+        Text {
+            id: time
+            text: "0";
+            visible: false
+        }
+        Timer {
+            id: refreshTimer
+            interval: 1000 // milliseconds
+            running: true
+            repeat: true
+            onTriggered: {
+                time.text = parseInt((time.text)*1+1);
+                if (parseInt((time.text)*1) >= 100) {
+                    time.text = "0";
+                    chart.series(0).clear();
+                }
+                chart.series(0).append(parseInt(time.text), serialport.V_Dc * serialport.I_Dc);
+                time.linecount++;
+            }
+        }
+    }
+
     Dialog {
-        id: aboutDialog
+        id: chartDialog
         modal: true
         focus: true
-        title: "About"
+        title: "Input Power Over Time"
         x: (window.width - width) / 2
         y: window.height / 6
-        width: Math.min(window.width, window.height) / 3 * 2
-        contentHeight: aboutColumn.height
+        width: chart.width + 170
+        contentHeight: chartColumn.height
 
         Column {
-            id: aboutColumn
+            id: chartColumn
             spacing: 20
-
-            Label {
-                width: aboutDialog.availableWidth
-                text: "The Qt Quick Controls 2 module delivers the next generation user interface controls based on Qt Quick."
-                wrapMode: Label.Wrap
-                font.pixelSize: 12
-            }
-
-            Label {
-                width: aboutDialog.availableWidth
-                text: "In comparison to the desktop-oriented Qt Quick Controls 1, Qt Quick Controls 2 "
-                      + "are an order of magnitude simpler, lighter and faster, and are primarily targeted "
-                      + "towards embedded and mobile platforms."
-                wrapMode: Label.Wrap
-                font.pixelSize: 12
+            ChartView {
+                id: chart
+                //anchors.left: animation.right
+                anchors.top:  animation1.top
+                //anchors.leftMargin: 170
+                anchors.topMargin: 450
+                anchors.horizontalCenter: parent.horizontalCenter
+                width: 500*window.width/1200
+                height: 400*window.height/707
+                axes: [
+                    ValueAxis{
+                        id: xAxis
+                        min: 0.0
+                        max: 100.0
+                    },
+                    ValueAxis{
+                        id: yAxis
+                        min: 0.0
+                        max: 30.0
+                    }
+                ]
+                Component.onCompleted: {
+                    var series = chart.createSeries(ChartView.SeriesTypeLine, "Power", xAxis, yAxis);
+                    series.append(serialport.V_Dc, serialport.I_Dc);
+                }
             }
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*##^## Designer {
-    D{i:18;anchors_width:352}D{i:17;anchors_x:0}D{i:14;anchors_width:352}D{i:13;anchors_x:0;invisible:true}
-D{i:12;invisible:true}D{i:83;invisible:true}D{i:84;invisible:true}D{i:86;invisible:true}
-D{i:85;invisible:true}D{i:82;invisible:true}D{i:87;invisible:true}D{i:78;invisible:true}
-}
- ##^##*/
